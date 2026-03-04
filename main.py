@@ -16,8 +16,8 @@ async def lifespan(app: FastAPI):
 
 # 3. Inicialización de FastAPI
 app = FastAPI(
-    title="Romi CP API - México",
-    description="API interna para búsqueda de códigos postales y colonias",
+    title="Romi SEPOMEX API - México",
+    description="API interna para búsqueda de códigos postales, colonias, estados y municipios",
     version="1.0.0",
     lifespan=lifespan
 )
