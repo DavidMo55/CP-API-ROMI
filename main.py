@@ -8,13 +8,10 @@ import uvicorn
 prisma = Prisma()
 
 # 2. Manejo del Ciclo de Vida (Lifespan)
-# Reemplaza los antiguos @app.on_event("startup") y "shutdown"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Conexión a Neon al iniciar
     await prisma.connect()
     yield
-    # Desconexión al apagar
     await prisma.disconnect()
 
 # 3. Inicialización de FastAPI
@@ -29,7 +26,7 @@ app = FastAPI(
 # Esto permite que tu app de gestión de equipos (React/Astro) haga peticiones
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, cambia "*" por la URL de tu frontend
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,10 +39,8 @@ async def buscar_cp(cp: str):
     Busca un código postal en la base de datos de Neon y devuelve:
     Estado, Municipio, Ciudad y la lista de Colonias (Asentamientos).
     """
-    # Normalizamos a 5 dígitos (ej. "6600" -> "06600")
     cp_limpio = cp.zfill(5)
     
-    # Consulta a la tabla codigopostal (nombre generado por Prisma)
     try:
         registros = await prisma.codigopostal.find_many(
             where={'d_codigo': cp_limpio}
@@ -60,10 +55,8 @@ async def buscar_cp(cp: str):
             detail=f"El Código Postal {cp_limpio} no existe en la base de datos."
         )
 
-    # Extraemos la información común del primer registro
     base = registros[0]
     
-    # Estructura optimizada para el frontend
     return {
         "codigo_postal": cp_limpio,
         "estado": base.d_estado,
@@ -81,5 +74,4 @@ async def buscar_cp(cp: str):
 
 # 6. Ejecución del servidor
 if __name__ == "__main__":
-    # Usamos reload=True para que se reinicie al detectar cambios en el código
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
