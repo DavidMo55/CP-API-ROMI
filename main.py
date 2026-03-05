@@ -72,6 +72,39 @@ async def buscar_cp(cp: str):
         ]
     }
 
+# --- Búsqueda por Estado ---
+@app.get("/api/v1/estados/{nombre}")
+async def buscar_por_estado(nombre: str):
+    registros = await prisma.codigopostal.find_many(
+        where={
+            'd_estado': {
+                'contains': nombre,
+                'mode': 'insensitive'
+            }
+        },
+        distinct=['d_estado']
+    )
+    return {"resultados": [r.d_estado for r in registros]}
+
+@app.get("/api/v1/municipios/{nombre}")
+async def buscar_por_municipio(nombre: str, estado: str = None):
+    filtros = {
+        'D_mnpio': {'contains': nombre, 'mode': 'insensitive'}
+    }
+    if estado:
+        filtros['d_estado'] = {'contains': estado, 'mode': 'insensitive'}
+
+    registros = await prisma.codigopostal.find_many(
+        where=filtros,
+        distinct=['D_mnpio', 'd_estado']
+    )
+    return {
+        "resultados": [
+            {"municipio": r.D_mnpio, "estado": r.d_estado} 
+            for r in registros
+        ]
+    }
+
 # 6. Ejecución del servidor
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
